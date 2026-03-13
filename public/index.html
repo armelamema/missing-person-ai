@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Missing Person Finder</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="overlay"></div>
+<div class="container">
+  <h1>Missing Person Finder</h1>
+  <p class="subtitle">
+    AI-powered tool to provide tips based on uploaded photos and descriptions.
+  </p>
+
+  <!-- Upload Form -->
+  <form id="uploadForm">
+    <label for="photo">Upload Photo:</label>
+    <input type="file" id="photo" name="photo" accept="image/*" required>
+
+    <label for="description">Description:</label>
+    <textarea id="description" name="description" placeholder="Age, city, clothes, etc." required></textarea>
+
+    <button type="submit">Submit</button>
+  </form>
+
+  <!-- Result Box -->
+  <div id="result" class="result"></div>
+
+  <!-- Follow-up question -->
+  <div id="followUpContainer" style="display:none; margin-top:20px;">
+    <label for="followUp">Ask more questions:</label>
+    <textarea id="followUp" placeholder="Type your question here..." rows="2"></textarea>
+    <button id="askFollowUp">Ask</button>
+  </div>
+
+  <!-- Redo -->
+  <div id="redoContainer" style="display:none; margin-top:20px; text-align:center;">
+    <button id="redoBtn">Redo</button>
+  </div>
+</div>
+
+<script>
+// format AI text
+function formatText(text) {
+  if (!text) return '';
+  text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/^### (.*)$/gm, '<h3>$1</h3>');
+  text = text.replace(/^#### (.*)$/gm, '<h4>$1</h4>');
+  text = text.replace(/^\s*-\s+(.*)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
+  text = text.replace(/\n{2,}/g, '<p></p>');
+  return text;
+}
+
+const form = document.getElementById('uploadForm');
+const resultDiv = document.getElementById('result');
+const followUpContainer = document.getElementById('followUpContainer');
+const followUpInput = document.getElementById('followUp');
+const followUpBtn = document.getElementById('askFollowUp');
+
+const redoContainer = document.getElementById('redoContainer');
+const redoBtn = document.getElementById('redoBtn');
+
+// Upload handler
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  resultDiv.textContent = 'Searching...';
+  const formData = new FormData(form);
+
+  try {
+    const res = await fetch('/upload', { method: 'POST', body: formData });
+    const data = await res.json();
+
+    const file = document.getElementById('photo').files[0];
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      resultDiv.innerHTML = `
+        <h2>Result:</h2>
+        <img src="${reader.result}" style="max-width:200px; display:block; margin-bottom:10px; border-radius:10px;">
+        <p><strong>Filename:</strong> ${data.filename || "No file"}</p>
+        <div class="ai-suggestion" id="chatBox">${formatText(data.suggestion)}</div>
+      `;
+
+      // Show follow-up and redo button
+      followUpContainer.style.display = 'block';
+      redoContainer.style.display = 'block';
+
+      // Smooth scroll to follow-up
+      followUpContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+    reader.readAsDataURL(file);
+  } catch (err) {
+    resultDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+  }
+});
+
+// Follow-up handler (chat style)
+followUpBtn.addEventListener('click', async e => {
+  e.preventDefault();
+  const question = followUpInput.value.trim();
+  if (!question) return;
+
+  const chatBox = document.getElementById('chatBox');
+
+  // User message
+  const userDiv = document.createElement('div');
+  userDiv.className = 'chat-message user';
+  userDiv.innerHTML = `<p><strong>You:</strong> ${question}</p>`;
+  chatBox.appendChild(userDiv);
+
+  // AI processing message
+  const processingDiv = document.createElement('div');
+  processingDiv.className = 'chat-message ai';
+  processingDiv.innerHTML = `<p><em>Processing...</em></p>`;
+  chatBox.appendChild(processingDiv);
+
+  followUpInput.value = '';
+  chatBox.scrollTop = chatBox.scrollHeight;
+
+  try {
+    const res = await fetch('/followup', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ question })
+    });
+    const data = await res.json();
+
+    processingDiv.innerHTML = `<p><strong>AI:</strong></p>` + formatText(data.answer || "No answer received.");
+    chatBox.scrollTop = chatBox.scrollHeight;
+  } catch (err) {
+    processingDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+  }
+});
+
+// Redo / Add Another button
+redoBtn.addEventListener('click', () => {
+  form.reset();
+  resultDiv.innerHTML = '';
+  followUpContainer.style.display = 'none';
+  redoContainer.style.display = 'none';
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+</script>
+</body>
+</html>

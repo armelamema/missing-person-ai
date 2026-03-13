@@ -1,0 +1,279 @@
+/* ================== Base Reset ================== */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* ================== Body ================== */
+body{
+  min-height:100vh;
+  background:url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1470&q=80') no-repeat center center/cover;
+  display:block; /* removed flex */
+  padding:40px 20px;
+  color:#fff;
+  position:relative;
+  overflow-y:auto; /* enable vertical scroll */
+  scroll-behavior: smooth; /* smooth scrolling */
+}
+
+/* ================== Overlay ================== */
+.overlay{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background:rgba(0,0,0,0.35); /* lightened overlay */
+  backdrop-filter:blur(8px);
+  z-index:1;
+}
+
+/* ================== Main Container ================== */
+.container{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:700px;
+  margin:0 auto; /* horizontal center */
+  background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(15px);
+  border-radius:18px;
+  padding:35px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.5);
+  text-align:center;
+  animation:fadeIn 1s ease;
+}
+
+/* ================== Headings ================== */
+h1{
+  margin-bottom:25px;
+  font-size:2rem;
+  font-weight:700;
+  background:linear-gradient(135deg,#4c6ef5,#15aabf);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 0 15px rgba(76,110,245,0.7),
+              0 0 25px rgba(21,170,191,0.6);
+}
+
+/* ================== Subtitle ================== */
+.subtitle{
+  margin-top:-10px;
+  margin-bottom:20px;
+  font-size:1rem;
+  color:#e6e6e6;
+  animation:fadeIn 2s ease forwards;
+}
+
+/* ================== Labels ================== */
+form label{
+  display:block;
+  text-align:left;
+  margin-top:15px;
+  margin-bottom:5px;
+  font-weight:600;
+  color:#f1f1f1;
+}
+
+/* ================== Inputs ================== */
+input[type="file"],
+textarea{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.08);
+  color:#fff;
+  font-size:1rem;
+}
+
+/* Focus */
+input:focus,
+textarea:focus{
+  outline:none;
+  border:1px solid #aaa;
+}
+
+/* textarea size */
+textarea{
+  resize:none;
+  min-height:100px;
+}
+
+/* ================== Buttons ================== */
+button{
+  margin-top:20px;
+  padding:12px 28px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#4c6ef5,#15aabf);
+  color:white;
+  font-size:1rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+  box-shadow:0 6px 20px rgba(76,110,245,0.5);
+}
+
+button:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 30px rgba(76,110,245,0.7);
+}
+
+/* ================== File Upload Button ================== */
+input[type="file"]::file-selector-button{
+  padding:10px 18px;
+  margin-right:10px;
+  border:none;
+  border-radius:10px;
+  background:linear-gradient(135deg,#4c6ef5,#15aabf);
+  color:white;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+input[type="file"]::file-selector-button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 15px rgba(76,110,245,0.6);
+}
+
+/* ================== Result Box ================== */
+.result{
+  margin-top:25px;
+  background:rgba(0,0,0,0.5);
+  color:#ffffff;
+  padding:20px;
+  border-radius:12px;
+  text-align:left;
+  max-height:400px;
+  overflow-y:auto;
+  white-space:pre-wrap;
+  box-shadow:0 8px 25px rgba(0,0,0,0.5);
+}
+
+/* Scrollbar */
+.result::-webkit-scrollbar{
+  width:8px;
+}
+.result::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,0.3);
+  border-radius:5px;
+}
+
+/* ================== AI Suggestion ================== */
+.ai-suggestion{
+  background:rgba(0,0,0,0.5);
+  padding:20px;
+  border-radius:12px;
+  line-height:1.6;
+  font-size:1rem;
+  color:#ffffff;
+  margin-top:15px;
+  max-height:400px;
+  overflow-y:auto;
+  box-shadow:0 6px 20px rgba(0,0,0,0.4);
+  border-left:5px solid #4c6ef5;
+}
+
+/* ================== Follow-up Area ================== */
+#followUpContainer{
+  margin-top:20px;
+  text-align:left;
+}
+
+#followUp{
+  width:100%;
+  padding:10px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.2);
+  background:rgba(255,255,255,0.08);
+  color:white;
+  margin-bottom:10px;
+}
+
+#askFollowUp{
+  padding:10px 20px;
+  border:none;
+  border-radius:10px;
+  background:#4c6ef5;
+  color:white;
+  cursor:pointer;
+}
+#askFollowUp:hover{
+  background:#364fc7;
+}
+
+/* ================== Particles Background ================== */
+.particles {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+  z-index:0;
+  overflow: hidden;
+}
+
+.particles span {
+  position: absolute;
+  display: block;
+  width: 6px;
+  height: 6px;
+  background: rgba(76, 110, 245, 0.6);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(76,110,245,0.6),
+              0 0 20px rgba(21,170,191,0.5);
+  animation: float 15s linear infinite;
+  opacity:0;
+}
+
+.particles span:nth-child(1){ left:5%; animation-duration:16s; top:100%; }
+.particles span:nth-child(2){ left:20%; animation-duration:18s; top:100%; }
+.particles span:nth-child(3){ left:35%; animation-duration:14s; top:100%; }
+.particles span:nth-child(4){ left:50%; animation-duration:20s; top:100%; }
+.particles span:nth-child(5){ left:65%; animation-duration:17s; top:100%; }
+.particles span:nth-child(6){ left:80%; animation-duration:19s; top:100%; }
+.particles span:nth-child(7){ left:10%; animation-duration:15s; top:100%; }
+.particles span:nth-child(8){ left:30%; animation-duration:22s; top:100%; }
+.particles span:nth-child(9){ left:55%; animation-duration:16s; top:100%; }
+.particles span:nth-child(10){ left:75%; animation-duration:21s; top:100%; }
+
+@keyframes float{
+  0% { transform: translateY(0) scale(0.5); opacity:0; }
+  20% { opacity:1; }
+  80% { opacity:1; }
+  100% { transform: translateY(-120vh) scale(1); opacity:0; }
+}
+
+/* ================== Fade In Animation ================== */
+@keyframes fadeIn{
+  from{ opacity:0; transform:translateY(20px);}
+  to{ opacity:1; transform:translateY(0);}
+}
+
+/* ================== Mobile ================== */
+@media (max-width:600px){
+  .container{ padding:25px; }
+  h1{ font-size:1.6rem; }
+}
+/* ================== Redo Button ================== */
+#redoBtn {
+  padding:12px 28px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#4c6ef5,#15aabf);
+  color:white;
+  font-size:1rem;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+  box-shadow:0 6px 20px rgba(76,110,245,0.5);
+}
+
+#redoBtn:hover {
+  transform:translateY(-3px);
+  box-shadow:0 10px 30px rgba(76,110,245,0.7);
+}
