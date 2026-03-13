@@ -5,7 +5,9 @@ const path = require('path');
 const { BedrockRuntimeClient, ConverseCommand } = require("@aws-sdk/client-bedrock-runtime");
 
 const app = express();
-const PORT = 3000;
+
+// ✅ Use Render’s dynamic port
+const PORT = process.env.PORT || 3000;
 
 // AWS Bedrock client
 const client = new BedrockRuntimeClient({
@@ -69,4 +71,4 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!', message: err.message });
 });
 
-app.listen(PORT, () => console.log(`Server running at http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
