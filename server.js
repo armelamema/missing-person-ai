@@ -9,16 +9,19 @@ const app = express();
 // ✅ Use Render’s dynamic port
 const PORT = process.env.PORT || 3000;
 
-// AWS Bedrock client
+// AWS Bedrock client using Bearer token
 const client = new BedrockRuntimeClient({
-  region: process.env.AWS_REGION || 'us-west-2'
+  region: process.env.AWS_REGION || 'us-west-2',
+  credentials: {
+    token: process.env.AWS_BEARER_TOKEN_BEDROCK
+  }
 });
 
 // Middleware
 app.use(express.static('public'));
 app.use(express.json());
 
-// Multer setup
+// Multer setup for photo uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
@@ -32,11 +35,14 @@ app.post('/upload', upload.single('photo'), async (req, res, next) => {
 
     const command = new ConverseCommand({
       modelId: process.env.MODEL_ID, 
-      messages: [{ role: "user", content: [{ text: `Help find a missing person: ${description}` }] }]
+      messages: [{
+        role: "user",
+        content: [{ text: `Provide useful search tips, possible locations, and next steps to help find this missing person: ${description}` }]
+      }]
     });
 
     const response = await client.send(command);
-    const text = response.output.message.content[0].text;
+    const text = response?.output?.message?.content?.[0]?.text || "No answer received";
 
     res.json({ suggestion: text, filename: req.file ? req.file.originalname : 'No file uploaded' });
   } catch (err) {
@@ -52,11 +58,14 @@ app.post('/followup', async (req, res, next) => {
 
     const command = new ConverseCommand({
       modelId: process.env.MODEL_ID,
-      messages: [{ role: "user", content: [{ text: `Answer this follow-up question: ${question}` }] }]
+      messages: [{
+        role: "user",
+        content: [{ text: `Answer this follow-up question: ${question}` }]
+      }]
     });
 
     const response = await client.send(command);
-    const text = response.output.message.content[0].text;
+    const text = response?.output?.message?.content?.[0]?.text || "No answer received";
 
     res.json({ answer: text });
   } catch (err) {
@@ -71,4 +80,5 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!', message: err.message });
 });
 
+// Start server
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
