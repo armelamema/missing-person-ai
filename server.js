@@ -5,15 +5,14 @@ const path = require('path');
 const { BedrockRuntimeClient, ConverseCommand } = require("@aws-sdk/client-bedrock-runtime");
 
 const app = express();
-
-// ✅ Use Render’s dynamic port
 const PORT = process.env.PORT || 3000;
 
-// AWS Bedrock client using Bearer token
+// ✅ Bedrock client using AWS Access Keys
 const client = new BedrockRuntimeClient({
-  region: process.env.AWS_REGION || 'us-west-2',
+  region: process.env.AWS_REGION,
   credentials: {
-    token: process.env.AWS_BEARER_TOKEN_BEDROCK
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY
   }
 });
 
@@ -34,10 +33,12 @@ app.post('/upload', upload.single('photo'), async (req, res, next) => {
     const description = req.body.description;
 
     const command = new ConverseCommand({
-      modelId: process.env.MODEL_ID, 
+      modelId: process.env.MODEL_ID,
       messages: [{
         role: "user",
-        content: [{ text: `Provide useful search tips, possible locations, and next steps to help find this missing person: ${description}` }]
+        content: [{
+          text: `Provide useful search tips, possible locations, and next steps to help find this missing person: ${description}`
+        }]
       }]
     });
 
