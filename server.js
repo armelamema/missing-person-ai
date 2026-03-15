@@ -7,7 +7,7 @@ const { BedrockRuntimeClient, ConverseCommand } = require("@aws-sdk/client-bedro
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Bedrock client
+// Bedrock client
 const client = new BedrockRuntimeClient({
   region: process.env.AWS_REGION,
   credentials: {
@@ -21,102 +21,59 @@ app.use(express.static('public'));
 app.use(express.json());
 
 // Multer setup
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
-});
-
+const storage = multer.memoryStorage(); // no files saved, easier for Render
 const upload = multer({ storage });
 
-// ==============================
-// Upload Endpoint
-// ==============================
-app.post('/upload', upload.single('photo'), async (req, res, next) => {
-  try {
-    const description = req.body.description || "No description provided";
+// Upload endpoint
+app.post('/upload', upload.single('photo'), async (req, res) => {
+  const description = req.body.description || "No description";
 
+  try {
     const command = new ConverseCommand({
       modelId: process.env.MODEL_ID,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              text: `You are an AI assistant helping locate a missing person. 
-Provide practical search tips, possible locations to investigate, and next steps authorities or family members should take.
-
-Missing person description: ${description}`
-            }
-          ]
-        }
-      ]
+      messages: [{
+        role: "user",
+        content: [{ text: `Give detailed steps and tips to find this missing person: ${description}` }]
+      }]
     });
 
     const response = await client.send(command);
 
-    console.log("Bedrock response:", JSON.stringify(response, null, 2));
+    // Extract AI answer safely
+    const text = response?.output?.message?.content?.find(c => c.text)?.text ||
+                 "AI could not respond, but try again.";
 
-    const text = response?.output?.message?.content?.find(item => item.text)?.text || "No answer received";
-
-    res.json({
-      suggestion: text,
-      filename: req.file?.originalname || "No file uploaded"
-    });
-
+    res.json({ suggestion: text });
   } catch (err) {
-    console.error(err);
-    next(err);
+    console.error("Bedrock error:", err);
+    // Always return something to the user
+    res.json({ suggestion: "AI could not respond. Check again later." });
   }
 });
 
-// ==============================
-// Follow-up Question Endpoint
-// ==============================
-app.post('/followup', async (req, res, next) => {
-  try {
-    const question = req.body.question || "No question provided";
+// Follow-up endpoint
+app.post('/followup', async (req, res) => {
+  const question = req.body.question || "No question";
 
+  try {
     const command = new ConverseCommand({
       modelId: process.env.MODEL_ID,
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              text: `You are helping investigators locate a missing person.
-Provide helpful guidance and suggestions.
-
-Question: ${question}`
-            }
-          ]
-        }
-      ]
+      messages: [{
+        role: "user",
+        content: [{ text: `Answer this question about finding a missing person: ${question}` }]
+      }]
     });
 
     const response = await client.send(command);
-    console.log("Bedrock response:", JSON.stringify(response, null, 2));
-
-    const text = response?.output?.message?.content?.find(item => item.text)?.text || "No answer received";
-
+    const text = response?.output?.message?.content?.find(c => c.text)?.text ||
+                 "AI could not respond, try again.";
     res.json({ answer: text });
-
   } catch (err) {
-    console.error(err);
-    next(err);
+    console.error("Bedrock error:", err);
+    res.json({ answer: "AI could not respond. Try again later." });
   }
 });
 
-// ==============================
-// Global Error Handler
-// ==============================
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: "Something went wrong", message: err.message });
-});
-
-// ==============================
-// Start Server
-// ==============================
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   console.log("Using model:", process.env.MODEL_ID);
