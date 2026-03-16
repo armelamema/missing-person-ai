@@ -1,13 +1,17 @@
+// server.js
 require('dotenv').config();
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const { BedrockRuntimeClient, ConverseCommand } = require("@aws-sdk/client-bedrock-runtime");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ✅ Bedrock client
+// ==============================
+// Bedrock client
+// ==============================
 const client = new BedrockRuntimeClient({
   region: process.env.AWS_REGION,
   credentials: {
@@ -16,12 +20,28 @@ const client = new BedrockRuntimeClient({
   }
 });
 
+// ==============================
 // Middleware
-app.use(express.static('public'));
+// ==============================
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Multer setup (memory storage for Render-friendly uploads)
-const storage = multer.memoryStorage();
+// Serve static files (index.html, style.css)
+app.use(express.static(path.join(__dirname, "public")));
+
+// ==============================
+// Ensure uploads folder exists
+// ==============================
+const uploadsDir = path.join(__dirname, "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir);
+}
+
+// Multer setup (store uploaded images in uploads folder)
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, uploadsDir),
+  filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname))
+});
 const upload = multer({ storage });
 
 // ==============================
@@ -32,13 +52,13 @@ app.post('/upload', upload.single('photo'), async (req, res) => {
 
   try {
     const command = new ConverseCommand({
-  modelId: process.env.MODEL_ID,
-  messages: [
-    {
-      role: "user",
-      content: [
+      modelId: process.env.MODEL_ID,
+      messages: [
         {
-          text: `You are a professional missing person investigator. 
+          role: "user",
+          content: [
+            {
+              text: `You are a professional missing person investigator. 
 Provide a detailed, structured plan to help locate the missing person described below.
 Include:
 - Immediate actions for family or authorities
@@ -51,14 +71,14 @@ Include:
 Missing person description: ${description}
 
 Please give your answer in multiple paragraphs, clearly structured and actionable.`
+            }
+          ]
         }
       ]
-    }
-  ]
-});
+    });
+
     const response = await client.send(command);
 
-    // Extract AI text safely
     const text = response?.output?.message?.content?.find(item => item.text)?.text || 
                  "AI could not respond, try again.";
 
@@ -81,22 +101,21 @@ app.post('/followup', async (req, res) => {
 
   try {
     const command = new ConverseCommand({
-  modelId: process.env.MODEL_ID,
-  messages: [
-    {
-      role: "user",
-      content: [
+      modelId: process.env.MODEL_ID,
+      messages: [
         {
-          text: `You are a professional missing person investigator. 
+          role: "user",
+          content: [
+            {
+              text: `You are a professional missing person investigator. 
 Answer the following question in detail and provide actionable advice, including possible locations, documents, or people to contact:
 
 ${question}`
+            }
+          ]
         }
       ]
-    }
-  ]
-});
-   
+    });
 
     const response = await client.send(command);
 
