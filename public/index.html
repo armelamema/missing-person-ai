@@ -66,40 +66,33 @@ form.addEventListener("submit", async (e) => {
   e.preventDefault();
   resultDiv.innerHTML = "<p>Searching...</p>";
 
-  const file = document.getElementById("photo").files[0];
-  if (!file) {
-    resultDiv.innerHTML = "<p style='color:red;'>Please upload a photo.</p>";
-    return;
-  }
-
   const formData = new FormData(form);
 
   try {
     const res = await fetch("/upload", { method: "POST", body: formData });
     const data = await res.json();
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      resultDiv.innerHTML = `
-        <h2>Result:</h2>
-        <img src="${reader.result}" style="max-width:200px; display:block; margin-bottom:10px; border-radius:10px;">
-        <p><strong>Filename:</strong> ${data.filename || "No file"}</p>
-        <div class="ai-suggestion" id="chatBox">
-          <p><strong>AI:</strong></p>
-          ${formatText(data.suggestion || "No answer received")}
-        </div>
-      `;
-      followUpContainer.style.display = "block";
-      redoContainer.style.display = "block";
-      followUpContainer.scrollIntoView({ behavior: "smooth", block: "start" });
-    };
-    reader.readAsDataURL(file);
+    // Display result from server
+    resultDiv.innerHTML = `
+      <h2>Result:</h2>
+      ${data.fileUrl ? `<img src="${data.fileUrl}" style="max-width:200px; display:block; margin-bottom:10px; border-radius:10px;">` : ''}
+      <p><strong>Filename:</strong> ${data.filename || "No file"}</p>
+      <div class="ai-suggestion" id="chatBox">
+        <p><strong>AI:</strong></p>
+        ${formatText(data.suggestion || "No answer received")}
+      </div>
+    `;
+
+    followUpContainer.style.display = "block";
+    redoContainer.style.display = "block";
+    followUpContainer.scrollIntoView({ behavior: "smooth", block: "start" });
 
   } catch (err) {
     resultDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
   }
 });
 
+// Follow-up questions
 followUpBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   const question = followUpInput.value.trim();
@@ -132,6 +125,7 @@ followUpBtn.addEventListener("click", async (e) => {
   }
 });
 
+// Redo button
 redoBtn.addEventListener("click", () => {
   form.reset();
   resultDiv.innerHTML = "";
