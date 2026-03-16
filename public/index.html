@@ -6,7 +6,6 @@
 <title>Missing Person Finder</title>
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
 
 <div class="overlay"></div>
@@ -14,30 +13,28 @@
 <div class="container">
 
 <h1>Missing Person Finder</h1>
-<p class="subtitle">
-AI-powered tool to provide tips based on uploaded photos and descriptions.
-</p>
+<p class="subtitle">AI-powered tool to provide tips based on uploaded photos and descriptions.</p>
 
 <form id="uploadForm" enctype="multipart/form-data">
-<label for="photo">Upload Photo:</label>
-<input type="file" id="photo" name="photo" accept="image/*" required>
+  <label for="photo">Upload Photo:</label>
+  <input type="file" id="photo" name="photo" accept="image/*" required>
 
-<label for="description">Description:</label>
-<textarea id="description" name="description" placeholder="Age, city, clothes, etc." required></textarea>
+  <label for="description">Description:</label>
+  <textarea id="description" name="description" placeholder="Age, city, clothes, etc." required></textarea>
 
-<button type="submit">Submit</button>
+  <button type="submit">Submit</button>
 </form>
 
 <div id="result" class="result"></div>
 
 <div id="followUpContainer" style="display:none; margin-top:20px;">
-<label for="followUp">Ask more questions:</label>
-<textarea id="followUp" placeholder="Type your question here..." rows="2"></textarea>
-<button id="askFollowUp">Ask</button>
+  <label for="followUp">Ask more questions:</label>
+  <textarea id="followUp" placeholder="Type your question here..." rows="2"></textarea>
+  <button id="askFollowUp">Ask</button>
 </div>
 
 <div id="redoContainer" style="display:none; margin-top:20px; text-align:center;">
-<button id="redoBtn">Redo</button>
+  <button id="redoBtn">Redo</button>
 </div>
 
 </div>
@@ -72,10 +69,9 @@ form.addEventListener("submit", async (e) => {
     const res = await fetch("/upload", { method: "POST", body: formData });
     const data = await res.json();
 
-    // Display result from server
+    // Show AI suggestion and filename only
     resultDiv.innerHTML = `
       <h2>Result:</h2>
-      ${data.fileUrl ? `<img src="${data.fileUrl}" style="max-width:200px; display:block; margin-bottom:10px; border-radius:10px;">` : ''}
       <p><strong>Filename:</strong> ${data.filename || "No file"}</p>
       <div class="ai-suggestion" id="chatBox">
         <p><strong>AI:</strong></p>
@@ -92,7 +88,6 @@ form.addEventListener("submit", async (e) => {
   }
 });
 
-// Follow-up questions
 followUpBtn.addEventListener("click", async (e) => {
   e.preventDefault();
   const question = followUpInput.value.trim();
@@ -125,7 +120,6 @@ followUpBtn.addEventListener("click", async (e) => {
   }
 });
 
-// Redo button
 redoBtn.addEventListener("click", () => {
   form.reset();
   resultDiv.innerHTML = "";
@@ -134,5 +128,6 @@ redoBtn.addEventListener("click", () => {
   form.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 </script>
+
 </body>
 </html>
